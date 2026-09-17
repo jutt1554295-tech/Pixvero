@@ -2236,10 +2236,10 @@
                             file
                         );
 
-
                     const image =
                         new Image();
 
+                    image.decoding = "async";
 
                     image.onload =
                         function() {
@@ -2251,7 +2251,6 @@
                             resolve(image);
 
                         };
-
 
                     image.onerror =
                         function() {
@@ -2268,7 +2267,6 @@
 
                         };
 
-
                     image.src =
                         url;
 
@@ -2277,6 +2275,96 @@
 
         }
 
+
+        function getSafeImageSize(
+            width,
+            height
+        ) {
+
+            /*
+             * Large phone photos can require a very large RGBA canvas.
+             * Keep normal desktop images at their original size, but
+             * cap very large/mobile work to reduce memory pressure.
+             */
+
+            const mobile =
+                window.matchMedia(
+                    "(max-width: 700px)"
+                ).matches ||
+                navigator.maxTouchPoints > 0;
+
+            const maxDimension =
+                mobile
+                    ? 4096
+                    : 8192;
+
+            const maxPixels =
+                mobile
+                    ? 12000000
+                    : 32000000;
+
+            const pixels =
+                width * height;
+
+            const scale =
+                pixels > maxPixels ||
+                width > maxDimension ||
+                height > maxDimension
+                    ? Math.min(
+                        maxDimension / width,
+                        maxDimension / height,
+                        Math.sqrt(
+                            maxPixels / pixels
+                        )
+                    )
+                    : 1;
+
+            return {
+                width: Math.max(
+                    1,
+                    Math.round(width * scale)
+                ),
+                height: Math.max(
+                    1,
+                    Math.round(height * scale)
+                ),
+                resized: scale < 1
+            };
+
+        }
+
+
+        function canvasToBlob(
+            canvas,
+            type,
+            quality
+        ) {
+
+            return new Promise(
+                function(resolve, reject) {
+
+                    try {
+
+                        canvas.toBlob(
+                            function(blob) {
+
+                                resolve(blob || null);
+
+                            },
+                            type,
+                            quality
+                        );
+
+                    } catch (error) {
+
+                        reject(error);
+
+                    }
+
+                }
+            );
+
+        }
 
 
         /* =========================
@@ -2293,16 +2381,22 @@
                     file
                 );
 
+            const safeSize =
+                getSafeImageSize(
+                    image.naturalWidth,
+                    image.naturalHeight
+                );
+
             const canvas =
                 document.createElement(
                     "canvas"
                 );
 
             canvas.width =
-                image.naturalWidth;
+                safeSize.width;
 
             canvas.height =
-                image.naturalHeight;
+                safeSize.height;
 
             const context =
                 canvas.getContext(
@@ -2333,7 +2427,9 @@
             context.drawImage(
                 image,
                 0,
-                0
+                0,
+                safeSize.width,
+                safeSize.height
             );
 
             /*
@@ -2346,13 +2442,6 @@
                 file.type === "image/jpeg"
                     ? "image/jpeg"
                     : "image/webp";
-
-            /*
-             * Try the requested quality first.
-             * If the result is still larger than the
-             * original, try lower qualities until we
-             * find a smaller file.
-             */
 
             const qualities = [];
 
@@ -2397,18 +2486,25 @@
                 of uniqueQualities
             ) {
 
-                const candidate =
-                    await new Promise(
-                        function(resolve) {
+                let candidate = null;
 
-                            canvas.toBlob(
-                                resolve,
-                                outputType,
-                                candidateQuality
-                            );
+                try {
 
-                        }
+                    candidate =
+                        await canvasToBlob(
+                            canvas,
+                            outputType,
+                            candidateQuality
+                        );
+
+                } catch (error) {
+
+                    console.warn(
+                        "Pixvero compressor encoding warning:",
+                        error
                     );
+
+                }
 
                 if (!candidate) {
                     continue;
@@ -2423,13 +2519,6 @@
                         candidate;
 
                 }
-
-                /*
-                 * Stop as soon as the candidate is
-                 * smaller than the original and is
-                 * at least as good as the user's
-                 * requested starting quality.
-                 */
 
                 if (
                     candidate.size < file.size
@@ -2446,19 +2535,15 @@
             if (!bestBlob) {
 
                 throw new Error(
-                    "Compression failed"
+                    "Compression failed on this image size or browser."
                 );
 
             }
 
-            /*
-             * If re-encoding cannot make the file
-             * smaller, keep the original rather than
-             * giving the user a larger "compressed" file.
-             */
-
             if (
                 bestBlob.size >= file.size
+                &&
+                !safeSize.resized
             ) {
 
                 return {
@@ -2472,11 +2557,13 @@
             return {
                 blob: bestBlob,
                 type: outputType,
-                wasReduced: true
+                wasReduced: true,
+                resized: safeSize.resized,
+                width: safeSize.width,
+                height: safeSize.height
             };
 
         }
-
 
 
         /* =========================
@@ -2714,7 +2801,10 @@
                             completed +
                             " of " +
                             selectedFiles.length +
-                            " images...";
+                            " images..." +
+                            (compression.resized
+                                ? " Large images are safely downscaled on this device."
+                                : "");
 
                     }
 
@@ -2734,7 +2824,7 @@
                         errorItem.textContent =
                             "Could not process " +
                             file.name +
-                            ". Please try another image.";
+                            ". The image may be too large for this device. Try a smaller image or lower the image resolution.";
 
 
                         resultList.appendChild(
