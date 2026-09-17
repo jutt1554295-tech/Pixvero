@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Image Resizer — Pixvero</title>
+  <meta name="description" content="Resize images online for free with Pixvero. Adjust image dimensions, preserve aspect ratio, choose output format and download instantly.">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #070b14;
+      color: #f5f7fb;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(1100px, calc(100% - 32px));
+      margin: auto;
+    }
+
+    header {
+      height: 76px;
+      border-bottom: 1px solid #1c2638;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .logo {
+      text-decoration: none;
+      color: white;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .logo span {
+      color: #57ddf5;
+    }
+
+    nav {
+      display: flex;
+      gap: 10px;
+    }
+
+    nav a {
+      color: #aebbd0;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    nav a:hover,
+    nav a.active {
+      background: #111b2d;
+      color: #fff;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 60px 20px 35px;
+    }
+
+    .shared-tool-hero h1,
+.hero h1{
+    margin: 0 0 14px;
+
+    color: #F8FAFC;
+
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    font-size: clamp(40px, 5.5vw, 58px);
+
+    line-height: 1.05;
+
+    letter-spacing: -2.4px;
+
+    font-weight: 900;
+}
+
+.hero h1 span{
+    background:
+        linear-gradient(
+            100deg,
+            #8B5CF6,
+            #6D7CFF,
+            #22D3EE
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+}
+
+@media (max-width: 560px){
+    .hero h1{
+        font-size: 38px;
+        letter-spacing: -1.7px;
+    }
+}
+
+    .tool-box {
+      background: #0d1525;
+      border: 1px solid #22304a;
+      border-radius: 24px;
+      padding: 35px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+
+    .upload-area {
+      border: 2px dashed #57ddf5;
+      background: #101b30;
+      min-height: 300px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: .2s;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover {
+      background: #14243d;
+      border-color: #8aeeff;
+    }
+
+    .upload-content {
+      padding: 30px;
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 14px;
+    }
+
+    .upload-content h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .upload-content p {
+      color: #9eabc0;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .image-preview {
+      width: 100%;
+      height: 300px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      background: #080f1d;
+    }
+
+    .image-preview img {
+      max-width: 100%;
+      max-height: 270px;
+      object-fit: contain;
+      border-radius: 12px;
+      display: block;
+    }
+
+    .file-info {
+      display: none;
+      margin-top: 18px;
+      padding: 15px 18px;
+      background: #101a2c;
+      border: 1px solid #22304a;
+      border-radius: 14px;
+      color: #aebbd0;
+      line-height: 1.6;
+    }
+
+    .controls {
+      margin-top: 28px;
+    }
+
+    .control-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .dimensions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 52px;
+      padding: 0 15px;
+      border-radius: 12px;
+      border: 1px solid #2a3953;
+      background: #0a1221;
+      color: white;
+      outline: none;
+      font-size: 16px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #57ddf5;
+    }
+
+    .aspect {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0;
+      color: #d9e1ec;
+    }
+
+    .aspect input {
+      width: 18px;
+      height: 18px;
+      accent-color: #57ddf5;
+    }
+
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .preset {
+      background: #0a1221;
+      color: #c8d4e5;
+      border: 1px solid #2a3953;
+      padding: 10px 13px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .preset:hover {
+      border-color: #57ddf5;
+      color: white;
+    }
+
+    .format {
+      margin-top: 22px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 15px 22px;
+    }
+
+    .resize-btn {
+      background: #57ddf5;
+      color: #041018;
+    }
+
+    .resize-btn:hover {
+      background: #8aeeff;
+    }
+
+    .clear-btn {
+      background: #172238;
+      color: white;
+      border: 1px solid #2a3953;
+    }
+
+    .result {
+      display: none;
+      margin-top: 35px;
+      border-top: 1px solid #22304a;
+      padding-top: 30px;
+    }
+
+    .result h2 {
+      margin-bottom: 18px;
+    }
+
+    .result-preview {
+      background: #080f1d;
+      border: 1px solid #22304a;
+      border-radius: 16px;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .result-preview img {
+      max-width: 100%;
+      max-height: 450px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .result-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .info-card {
+      background: #101a2c;
+      border: 1px solid #22304a;
+      border-radius: 13px;
+      padding: 15px;
+    }
+
+    .info-card small {
+      display: block;
+      color: #8796ad;
+      margin-bottom: 6px;
+    }
+
+    .download-btn {
+      margin-top: 18px;
+      background: #57ddf5;
+      color: #041018;
+    }
+
+    .error {
+      display: none;
+      margin-top: 15px;
+      padding: 14px;
+      background: #2a1720;
+      border: 1px solid #673343;
+      color: #ffb9c8;
+      border-radius: 12px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 50px 20px;
+      color: #718096;
+    }
+
+    @media (max-width: 700px) {
+      nav {
+        display: none;
+      }
+
+      .tool-box {
+        padding: 20px;
+      }
+
+      .dimensions {
+        grid-template-columns: 1fr;
+      }
+
+      .result-info {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding-top: 40px;
+      }
+
+      .upload-area {
+        min-height: 250px;
+      }
+    }
+  
+    /* =========================================
+       PIXVERO CUSTOM LOGO
+    ========================================= */
+
+    .pixvero-logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .pixvero-logo-icon {
+        width: 42px;
+        height: 42px;
+
+        flex: 0 0 42px;
+
+        display: block;
+
+        transition:
+            transform 0.3s ease,
+            filter 0.3s ease;
+    }
+
+    .pixvero-logo:hover .pixvero-logo-icon {
+        transform:
+            translateY(-2px)
+            rotate(-2deg);
+
+        filter:
+            drop-shadow(
+                0 8px 18px
+                rgba(139, 92, 246, 0.22)
+            );
+    }
+
+    .pixvero-logo-text {
+        position: relative;
+
+        font-size: 21px;
+        line-height: 1;
+
+        font-weight: 950;
+        letter-spacing: -0.7px;
+
+        color: #FFFFFF;
+
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .pixvero-logo-text .pix-i {
+        position: relative;
+    }
+
+    .pixvero-logo-text .pix-i::before {
+        content: "";
+
+        position: absolute;
+
+        width: 6px;
+        height: 6px;
+
+        border-radius: 2px;
+
+        top: -4px;
+        left: 50%;
+
+        transform: translateX(-50%);
+
+        background:
+            linear-gradient(
+                135deg,
+                #8B5CF6,
+                #22D3EE
+            );
+
+        box-shadow:
+            0 0 10px
+            rgba(139, 92, 246, 0.28);
+    }
+
+    .pixvero-logo-text .pix-x {
+        position: relative;
+
+        background:
+            linear-gradient(
+                100deg,
+                #8B5CF6,
+                #5D72FF,
+                #22D3EE
+            );
+
+        -webkit-background-clip: text;
+        background-clip: text;
+
+        color: transparent;
+    }
+
+    @media (max-width: 560px) {
+
+        .pixvero-logo {
+            gap: 9px;
+        }
+
+        .pixvero-logo-icon {
+            width: 38px;
+            height: 38px;
+            flex-basis: 38px;
+        }
+
+        .pixvero-logo-text {
+            font-size: 19px;
+        }
+    }
+/* =========================================
+       PIXVERO FINAL SHARED TOOL LAYOUT
+       Same alignment across Compressor,
+       Resizer and Converter
+    ========================================= */
+
+    html,
+    body {
+        min-width: 320px;
+    }
+
+    body {
+        background:
+            radial-gradient(
+                circle at 12% 18%,
+                rgba(139, 92, 246, 0.06),
+                transparent 30%
+            ),
+            radial-gradient(
+                circle at 88% 72%,
+                rgba(34, 211, 238, 0.05),
+                transparent 30%
+            ),
+            #080A10 !important;
+    }
+
+    .tool-page-header,
+    .compressor-header,
+    .converter-header,
+    header {
+        height: 74px !important;
+        min-height: 74px !important;
+        background: rgba(8, 10, 16, 0.90) !important;
+        border-bottom: 1px solid #27272F !important;
+        box-sizing: border-box;
+    }
+
+    .tool-page-header-inner,
+    .compressor-header > .wrap,
+    .converter-header-inner,
+    header .container,
+    header .nav {
+        width: min(1100px, calc(100% - 34px)) !important;
+        max-width: 1100px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box;
+    }
+
+    .tool-page-header-inner {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .pixvero-logo {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .tool-page-nav,
+    header nav {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+
+    .shared-back,
+    .back {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin: 24px 0 8px !important;
+        color: #67E8F9 !important;
+        font-weight: 800 !important;
+        font-size: 14px !important;
+        text-decoration: none !important;
+    }
+
+    .shared-back:hover,
+    .back:hover {
+        color: #8B5CF6 !important;
+        transform: translateX(-2px);
+    }
+
+    .shared-tool-hero,
+    .hero {
+        width: min(1100px, calc(100% - 34px)) !important;
+        max-width: 1100px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: center !important;
+        padding: 34px 0 34px !important;
+        box-sizing: border-box;
+    }
+
+    .shared-tool-hero h1,
+    .hero h1 {
+        margin-top: 0 !important;
+        margin-bottom: 14px !important;
+        font-size: clamp(40px, 5.5vw, 58px) !important;
+        line-height: 1.05 !important;
+        letter-spacing: -2.4px !important;
+        color: #F8FAFC !important;
+    }
+
+    .shared-tool-hero p,
+    .hero p {
+        width: min(760px, 100%) !important;
+        max-width: 760px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        color: #A1A1AA !important;
+        line-height: 1.7 !important;
+    }
+
+    .shared-tool-shell,
+    .tool,
+    .tool-box {
+        width: min(1100px, calc(100% - 34px)) !important;
+        max-width: 1100px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box;
+        background:
+            linear-gradient(
+                145deg,
+                rgba(17, 19, 26, 0.97),
+                rgba(13, 15, 21, 0.97)
+            ) !important;
+        border: 1px solid #27272F !important;
+        border-radius: 24px !important;
+        box-shadow:
+            0 24px 70px rgba(0, 0, 0, 0.34),
+            0 0 55px rgba(139, 92, 246, 0.05) !important;
+    }
+
+    .shared-tool-shell,
+    .tool {
+        padding: 28px !important;
+    }
+
+    .tool-box {
+        padding: 28px !important;
+    }
+
+    .shared-drop,
+    .drop,
+    .upload-area {
+        border-color: rgba(139, 92, 246, 0.55) !important;
+        background:
+            radial-gradient(
+                circle at 50% 0%,
+                rgba(139, 92, 246, 0.08),
+                transparent 44%
+            ),
+            #10131B !important;
+    }
+
+    .shared-drop:hover,
+    .drop:hover,
+    .drop.dragover,
+    .upload-area:hover,
+    .upload-area.dragover {
+        border-color: #22D3EE !important;
+        box-shadow:
+            0 18px 42px rgba(34, 211, 238, 0.08),
+            0 0 35px rgba(139, 92, 246, 0.08) !important;
+    }
+
+    .shared-primary-btn,
+    .resize-btn,
+    .btn:not(.secondary) {
+        background:
+            linear-gradient(
+                135deg,
+                #8B5CF6 0%,
+                #6D7CFF 48%,
+                #22D3EE 100%
+            ) !important;
+        color: #081018 !important;
+        border: 0 !important;
+    }
+
+    .shared-secondary-btn,
+    .secondary,
+    .clear-btn {
+        background: #171923 !important;
+        color: #F8FAFC !important;
+        border: 1px solid #27272F !important;
+    }
+
+    .shared-footer,
+    footer {
+        width: min(1100px, calc(100% - 34px)) !important;
+        max-width: 1100px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding: 44px 0 34px !important;
+        box-sizing: border-box;
+        text-align: center !important;
+    }
+
+    @media (max-width: 760px) {
+
+        .tool-page-header,
+        .compressor-header,
+        .converter-header,
+        header {
+            height: auto !important;
+            min-height: 70px !important;
+            padding: 12px 0 !important;
+        }
+
+        .tool-page-header-inner,
+        .compressor-header > .wrap,
+        .converter-header-inner,
+        header .container,
+        header .nav {
+            width: calc(100% - 24px) !important;
+        }
+
+        .shared-tool-hero,
+        .hero {
+            width: calc(100% - 24px) !important;
+            padding: 28px 0 !important;
+        }
+
+        .shared-tool-shell,
+        .tool,
+        .tool-box {
+            width: calc(100% - 24px) !important;
+            padding: 20px !important;
+            border-radius: 20px !important;
+        }
+
+        .shared-footer,
+        footer {
+            width: calc(100% - 24px) !important;
+        }
+    }
+
+    @media (max-width: 560px) {
+
+        .tool-page-header-inner {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+        }
+
+        .tool-page-nav,
+        header nav {
+            width: 100% !important;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tool-page-nav::-webkit-scrollbar,
+        header nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .shared-tool-hero h1,
+        .hero h1 {
+            font-size: 38px !important;
+            letter-spacing: -1.7px !important;
+        }
+    }
+/* =================================================
+   PIXVERO — FINAL SHARED TOOL HEADER
+   SAME ON ALL 4 TOOL PAGES
+   ================================================= */
+
+.tool-page-header{
+  height:74px;
+  min-height:74px;
+  width:100%;
+  background:rgba(8,10,16,.90);
+  border-bottom:1px solid #27272F;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  box-sizing:border-box;
+}
+
+.tool-page-header-inner{
+  width:min(1100px,calc(100% - 34px));
+  max-width:1100px;
+  height:74px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  box-sizing:border-box;
+}
+
+.tool-page-header .pixvero-logo{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  flex:0 0 auto;
+  white-space:nowrap;
+  text-decoration:none;
+  color:inherit;
+}
+
+.pixvero-logo-icon{
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+}
+
+.pixvero-logo-text{
+  font-size:21px;
+}
+
+.tool-page-header .pixvero-logo:hover .pixvero-logo-icon{
+  transform:translateY(-2px) rotate(-2deg);
+  filter:drop-shadow(0 8px 18px rgba(139,92,246,.22));
+}
+
+.tool-page-header .pixvero-logo-text{
+  position:relative;
+  color:#FFFFFF;
+  font-size:21px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.7px;
+  display:inline-flex;
+  align-items:center;
+}
+
+.tool-page-header .pixvero-logo-text .pix-i{
+  position:relative;
+}
+
+.tool-page-header .pixvero-logo-text .pix-i::before{
+  content:"";
+  position:absolute;
+  width:6px;
+  height:6px;
+  border-radius:2px;
+  top:-4px;
+  left:50%;
+  transform:translateX(-50%);
+  background:linear-gradient(135deg,#8B5CF6,#22D3EE);
+  box-shadow:0 0 10px rgba(139,92,246,.28);
+}
+
+.tool-page-header .pixvero-logo-text .pix-x{
+  background:linear-gradient(100deg,#8B5CF6,#5D72FF,#22D3EE);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.tool-page-nav{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  flex:0 0 auto;
+}
+
+.tool-page-nav a{
+  min-height:40px;
+  padding:0 14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid transparent;
+  border-radius:10px;
+  color:#A1A1AA;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:700;
+  white-space:nowrap;
+  transition:
+    color .22s ease,
+    background .22s ease,
+    border-color .22s ease,
+    transform .22s ease;
+}
+
+.tool-page-nav a:hover{
+  color:#F8FAFC;
+  background:rgba(139,92,246,.10);
+  border-color:rgba(139,92,246,.18);
+  transform:translateY(-1px);
+}
+
+.tool-page-nav a.active{
+  color:#F8FAFC;
+  background:linear-gradient(
+    135deg,
+    rgba(139,92,246,.18),
+    rgba(34,211,238,.10)
+  );
+  border-color:rgba(139,92,246,.22);
+}
+
+@media(max-width:760px){
+  .tool-page-header{
+    height:auto;
+    min-height:70px;
+    padding:12px 0;
+  }
+
+  .tool-page-header-inner{
+    width:calc(100% - 24px);
+    height:auto;
+    min-height:70px;
+  }
+
+  .tool-page-nav{
+    width:100%;
+    overflow-x:auto;
+    justify-content:flex-start;
+    scrollbar-width:none;
+  }
+
+  .tool-page-nav::-webkit-scrollbar{
+    display:none;
+  }
+
+  .tool-page-nav a{
+    flex:0 0 auto;
+  }
+}
+@media(max-width:560px){
+
+  .pixvero-logo-icon{
+    width:38px;
+    height:38px;
+    flex-basis:38px;
+  }
+
+  .pixvero-logo-text{
+    font-size:19px;
+  }
+
+  .tool-page-header .pixvero-logo{
+    gap:9px;
+  }
+
+  .tool-page-header .pixvero-logo-icon{
+    width:38px;
+    height:38px;
+    flex-basis:38px;
+  }
+
+  .tool-page-header .pixvero-logo-text{
+    font-size:19px;
+  }
+
+  .tool-page-nav a{
+    padding:0 12px;
+    font-size:13px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="tool-page-header">
+  <div class="tool-page-header-inner">
+
+    <a class="pixvero-logo" href="index.html" aria-label="Pixvero Home">
+
+      <svg class="pixvero-logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="pixveroPGradient" x1="10" y1="54" x2="54" y2="10" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#A46BFF"/>
+            <stop offset=".5" stop-color="#7C6CFF"/>
+            <stop offset="1" stop-color="#22D3EE"/>
+          </linearGradient>
+
+          <linearGradient id="pixveroGlowGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#18233D"/>
+            <stop offset="1" stop-color="#0B1020"/>
+          </linearGradient>
+        </defs>
+
+        <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#pixveroGlowGradient)"/>
+        <rect x="2.75" y="2.75" width="58.5" height="58.5" rx="17.25"
+              fill="none" stroke="#FFFFFF" stroke-opacity=".10" stroke-width="1.5"/>
+
+        <path d="M20 47V17H30.5C39 17 44 21 44 27.5C44 34 39 38 30.5 38H26.5V47H20ZM26.5 23V32.5H30C34.2 32.5 37 31 37 27.7C37 24.5 34.2 23 30 23H26.5Z"
+              fill="url(#pixveroPGradient)" fill-rule="evenodd"/>
+
+        <rect x="42" y="12" width="6" height="6" rx="1.8" fill="#22D3EE"/>
+        <rect x="49" y="20" width="7" height="7" rx="2" fill="#7C6CFF"/>
+        <rect x="43" y="29" width="5" height="5" rx="1.6" fill="#A46BFF"/>
+      </svg>
+
+      <span class="pixvero-logo-text">
+        P<span class="pix-i">i</span><span class="pix-x">x</span>vero
+      </span>
+    </a>
+
+    <nav class="tool-page-nav" aria-label="Tool Navigation">
+      <a href="index.html">Home</a>
+      <a href="image-resizer.html" class="active" aria-current="page">Resizer</a>
+      <a href="bg-remover.html">Background Remover</a>
+      <a href="image-converter.html">Converter</a>
+      <a href="image-compressor.html">Compressor</a>
+    </nav>
+
+  </div>
+</header>
+
+<main>
+<section class="hero">
+    <h1>Image <span>Resizer</span></h1>
+    <p>
+      Resize your images to any custom dimension or choose a ready-made
+      preset. Your image is processed directly in your browser.
+    </p>
+  </section>
+
+  <section class="container">
+    <div class="tool-box">
+
+      <label class="upload-area" id="uploadArea" for="fileInput">
+
+        <div class="upload-content" id="uploadContent">
+          <div class="upload-icon">🖼️</div>
+          <h2>Choose an image</h2>
+          <p>Click here or drag & drop a JPG, PNG or WebP image</p>
+        </div>
+
+        <div class="image-preview" id="imagePreview">
+          <img id="previewImage" alt="Selected image preview">
+        </div>
+
+      </label>
+
+      <input
+        type="file"
+        id="fileInput"
+        accept="image/jpeg,image/png,image/webp"
+      >
+
+      <div class="file-info" id="fileInfo"></div>
+
+      <div class="error" id="error"></div>
+
+      <div class="controls">
+
+        <div class="control-title">New Dimensions</div>
+
+        <div class="dimensions">
+
+          <div class="field">
+            <label for="width">Width</label>
+            <input type="number" id="width" min="1" placeholder="Width">
+          </div>
+
+          <div class="field">
+            <label for="height">Height</label>
+            <input type="number" id="height" min="1" placeholder="Height">
+          </div>
+
+        </div>
+
+        <label class="aspect">
+          <input type="checkbox" id="lockRatio" checked>
+          <span>Lock aspect ratio</span>
+        </label>
+
+        <div
+          id="ratioNote"
+          style="
+            margin-top: -8px;
+            margin-bottom: 18px;
+            color: #8796ad;
+            font-size: 12px;
+          "
+        >
+          When locked, presets fit your image inside the selected size
+          without stretching or squashing it.
+        </div>
+
+        <div class="control-title">Quick Presets</div>
+
+        <div class="presets">
+          <button class="preset" data-width="1920" data-height="1080">1920×1080</button>
+          <button class="preset" data-width="1280" data-height="720">1280×720</button>
+          <button class="preset" data-width="1080" data-height="1080">1080×1080</button>
+          <button class="preset" data-width="1080" data-height="1350">1080×1350</button>
+          <button class="preset" data-width="1080" data-height="1920">1080×1920</button>
+          <button class="preset" data-width="1200" data-height="630">1200×630</button>
+          <button class="preset" data-width="800" data-height="600">800×600</button>
+        </div>
+
+        <div class="format">
+          <div class="control-title">Output Format</div>
+
+          <select id="format">
+            <option value="image/jpeg">JPG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WebP</option>
+          </select>
+        </div>
+
+        <div class="buttons">
+          <button class="resize-btn" id="resizeBtn">
+            Resize Image
+          </button>
+
+          <button class="clear-btn" id="clearBtn">
+            Clear
+          </button>
+        </div>
+
+      </div>
+
+      <div class="result" id="result">
+
+        <h2>Resized Image</h2>
+
+        <div class="result-preview">
+          <img id="resultImage" alt="Resized image preview">
+        </div>
+
+        <div class="result-info">
+
+          <div class="info-card">
+            <small>Dimensions</small>
+            <strong id="resultDimensions">—</strong>
+          </div>
+
+          <div class="info-card">
+            <small>File Size</small>
+            <strong id="resultSize">—</strong>
+          </div>
+
+          <div class="info-card">
+            <small>Format</small>
+            <strong id="resultFormat">—</strong>
+          </div>
+
+        </div>
+
+        <button class="download-btn" id="downloadBtn">
+          Download Image
+        </button>
+
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="shared-footer">
+  © 2026 Pixvero — Free Online Image Tools
+</footer>
+
+
+<script>
+  const fileInput = document.getElementById("fileInput");
+  const uploadArea = document.getElementById("uploadArea");
+  const uploadContent = document.getElementById("uploadContent");
+  const imagePreview = document.getElementById("imagePreview");
+  const previewImage = document.getElementById("previewImage");
+
+  const fileInfo = document.getElementById("fileInfo");
+  const errorBox = document.getElementById("error");
+
+  const widthInput = document.getElementById("width");
+  const heightInput = document.getElementById("height");
+  const lockRatio = document.getElementById("lockRatio");
+
+  const resizeBtn = document.getElementById("resizeBtn");
+  const clearBtn = document.getElementById("clearBtn");
+
+  const result = document.getElementById("result");
+  const resultImage = document.getElementById("resultImage");
+  const resultDimensions = document.getElementById("resultDimensions");
+  const resultSize = document.getElementById("resultSize");
+  const resultFormat = document.getElementById("resultFormat");
+  const downloadBtn = document.getElementById("downloadBtn");
+
+  const formatSelect = document.getElementById("format");
+  const ratioNote = document.getElementById("ratioNote");
+
+  let selectedFile = null;
+  let originalImage = new Image();
+  let originalObjectURL = null;
+  let resultObjectURL = null;
+  let aspectRatio = 1;
+
+
+  function showError(message) {
+    errorBox.textContent = message;
+    errorBox.style.display = "block";
+  }
+
+
+  function hideError() {
+    errorBox.style.display = "none";
+  }
+
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + " B";
+
+    if (bytes < 1024 * 1024) {
+      return (bytes / 1024).toFixed(1) + " KB";
+    }
+
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  }
+
+
+  function getFormatName(type) {
+    if (type === "image/png") return "PNG";
+    if (type === "image/webp") return "WebP";
+    return "JPG";
+  }
+
+
+  function loadImage(file) {
+
+    hideError();
+
+    if (!file) return;
+
+    const allowed = [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (!allowed.includes(file.type)) {
+      showError("Unsupported file format. Please select a JPG, PNG, or WebP image.");
+      return;
+    }
+
+    selectedFile = file;
+
+    if (originalObjectURL) {
+      URL.revokeObjectURL(originalObjectURL);
+    }
+
+    originalObjectURL = URL.createObjectURL(file);
+
+    originalImage = new Image();
+
+    originalImage.onload = function () {
+
+      aspectRatio = originalImage.width / originalImage.height;
+
+      widthInput.value = originalImage.width;
+      heightInput.value = originalImage.height;
+
+      /*
+        IMPORTANT:
+        Image is immediately shown after upload.
+      */
+
+      previewImage.src = originalObjectURL;
+
+      uploadContent.style.display = "none";
+      imagePreview.style.display = "flex";
+
+      fileInfo.innerHTML = `
+        <strong>${file.name}</strong><br>
+        Original dimensions: ${originalImage.width} × ${originalImage.height}px<br>
+        Original size: ${formatBytes(file.size)}<br>
+        Format: ${getFormatName(file.type)}
+      `;
+
+      fileInfo.style.display = "block";
+
+      result.style.display = "none";
+    };
+
+    originalImage.onerror = function () {
+      showError("Something went wrong while loading this image. Please try another image.");
+    };
+
+    originalImage.src = originalObjectURL;
+  }
+
+
+  fileInput.addEventListener("change", function () {
+    if (this.files && this.files[0]) {
+      loadImage(this.files[0]);
+    }
+  });
+
+
+  uploadArea.addEventListener("dragover", function (event) {
+    event.preventDefault();
+    uploadArea.classList.add("dragover");
+  });
+
+
+  uploadArea.addEventListener("dragleave", function () {
+    uploadArea.classList.remove("dragover");
+  });
+
+
+  uploadArea.addEventListener("drop", function (event) {
+
+    event.preventDefault();
+
+    uploadArea.classList.remove("dragover");
+
+    const file = event.dataTransfer.files[0];
+
+    if (file) {
+      loadImage(file);
+    }
+  });
+
+
+  widthInput.addEventListener("input", function () {
+    result.style.display = "none";
+
+    if (!lockRatio.checked || !originalImage.width) {
+      return;
+    }
+
+    const newWidth = Number(widthInput.value);
+
+    if (newWidth > 0) {
+      heightInput.value = Math.round(newWidth / aspectRatio);
+    }
+  });
+
+
+  heightInput.addEventListener("input", function () {
+    result.style.display = "none";
+
+    if (!lockRatio.checked || !originalImage.height) {
+      return;
+    }
+
+    const newHeight = Number(heightInput.value);
+
+    if (newHeight > 0) {
+      widthInput.value = Math.round(newHeight * aspectRatio);
+    }
+  });
+
+
+  lockRatio.addEventListener("change", function () {
+
+    if (
+      this.checked &&
+      originalImage.width > 0 &&
+      originalImage.height > 0
+    ) {
+
+      const currentWidth =
+        Number(widthInput.value);
+
+      const currentHeight =
+        Number(heightInput.value);
+
+      if (
+        Number.isFinite(currentWidth) &&
+        Number.isFinite(currentHeight) &&
+        currentWidth > 0 &&
+        currentHeight > 0
+      ) {
+
+        const fitted =
+          fitInside(
+            originalImage.width,
+            originalImage.height,
+            currentWidth,
+            currentHeight
+          );
+
+        widthInput.value =
+          fitted.width;
+
+        heightInput.value =
+          fitted.height;
+
+      }
+
+    }
+
+    result.style.display =
+      "none";
+
+    ratioNote.style.display =
+      this.checked
+        ? "block"
+        : "none";
+
+  });
+
+
+  document.querySelectorAll(".preset").forEach(function (button) {
+
+    button.addEventListener("click", function () {
+
+      const presetWidth = Number(this.dataset.width);
+      const presetHeight = Number(this.dataset.height);
+
+      if (
+        lockRatio.checked &&
+        originalImage.width > 0 &&
+        originalImage.height > 0
+      ) {
+
+        const fitted =
+          fitInside(
+            originalImage.width,
+            originalImage.height,
+            presetWidth,
+            presetHeight
+          );
+
+        widthInput.value = fitted.width;
+        heightInput.value = fitted.height;
+
+      } else {
+
+        widthInput.value = presetWidth;
+        heightInput.value = presetHeight;
+
+      }
+
+    });
+
+  });
+
+
+  function fitInside(
+    sourceWidth,
+    sourceHeight,
+    maxWidth,
+    maxHeight
+  ) {
+
+    const scale =
+      Math.min(
+        maxWidth / sourceWidth,
+        maxHeight / sourceHeight
+      );
+
+    return {
+      width: Math.max(
+        1,
+        Math.round(sourceWidth * scale)
+      ),
+      height: Math.max(
+        1,
+        Math.round(sourceHeight * scale)
+      )
+    };
+
+  }
+
+
+  function calculateHighQualityDimensions(
+    sourceWidth,
+    sourceHeight,
+    targetWidth,
+    targetHeight
+  ) {
+
+    /*
+     * When the aspect-ratio lock is enabled,
+     * never stretch the image. The target box
+     * is treated as a maximum boundary.
+     */
+
+    if (
+      lockRatio.checked &&
+      sourceWidth > 0 &&
+      sourceHeight > 0
+    ) {
+
+      return fitInside(
+        sourceWidth,
+        sourceHeight,
+        targetWidth,
+        targetHeight
+      );
+
+    }
+
+    return {
+      width: targetWidth,
+      height: targetHeight
+    };
+
+  }
+
+
+  resizeBtn.addEventListener("click", function () {
+
+    hideError();
+
+    if (!selectedFile || !originalImage.src) {
+      showError("Please choose an image first.");
+      return;
+    }
+
+    const requestedWidth = Number(widthInput.value);
+    const requestedHeight = Number(heightInput.value);
+
+    if (
+      !Number.isFinite(requestedWidth) ||
+      !Number.isFinite(requestedHeight) ||
+      requestedWidth < 1 ||
+      requestedHeight < 1
+    ) {
+      showError("Please enter valid image dimensions.");
+      return;
+    }
+
+    const dimensions =
+      calculateHighQualityDimensions(
+        originalImage.width,
+        originalImage.height,
+        requestedWidth,
+        requestedHeight
+      );
+
+    const newWidth =
+      dimensions.width;
+
+    const newHeight =
+      dimensions.height;
+
+    if (newWidth > 10000 || newHeight > 10000) {
+      showError("The maximum supported dimension is 10,000 × 10,000 pixels.");
+      return;
+    }
+
+    resizeBtn.disabled = true;
+    resizeBtn.textContent = "Processing...";
+
+    setTimeout(function () {
+
+      try {
+
+        const canvas = document.createElement("canvas");
+
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+
+        const ctx =
+          canvas.getContext(
+            "2d",
+            {
+              alpha:
+                formatSelect.value !== "image/jpeg"
+            }
+          );
+
+        if (!ctx) {
+          throw new Error("Canvas is not supported.");
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
+        /*
+          White background for JPG because JPG doesn't support transparency.
+        */
+        if (formatSelect.value === "image/jpeg") {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, newWidth, newHeight);
+        }
+
+        /*
+         * Use progressive downscaling for large reductions.
+         * This reduces aliasing/blur compared with one huge
+         * resize step and keeps text/details cleaner.
+         */
+
+        let currentCanvas =
+          document.createElement("canvas");
+
+        currentCanvas.width =
+          originalImage.width;
+
+        currentCanvas.height =
+          originalImage.height;
+
+        const currentCtx =
+          currentCanvas.getContext("2d", {
+            alpha:
+              formatSelect.value !== "image/jpeg"
+          });
+
+        if (!currentCtx) {
+          throw new Error("Canvas is not supported.");
+        }
+
+        currentCtx.imageSmoothingEnabled = true;
+        currentCtx.imageSmoothingQuality = "high";
+
+        if (formatSelect.value === "image/jpeg") {
+          currentCtx.fillStyle = "#ffffff";
+          currentCtx.fillRect(
+            0,
+            0,
+            originalImage.width,
+            originalImage.height
+          );
+        }
+
+        currentCtx.drawImage(
+          originalImage,
+          0,
+          0
+        );
+
+        let currentWidth =
+          originalImage.width;
+
+        let currentHeight =
+          originalImage.height;
+
+        while (
+          currentWidth / 2 > newWidth &&
+          currentHeight / 2 > newHeight
+        ) {
+
+          const stepWidth =
+            Math.max(
+              newWidth,
+              Math.floor(
+                currentWidth / 2
+              )
+            );
+
+          const stepHeight =
+            Math.max(
+              newHeight,
+              Math.floor(
+                currentHeight / 2
+              )
+            );
+
+          const stepCanvas =
+            document.createElement("canvas");
+
+          stepCanvas.width =
+            stepWidth;
+
+          stepCanvas.height =
+            stepHeight;
+
+          const stepCtx =
+            stepCanvas.getContext("2d", {
+              alpha:
+                formatSelect.value !== "image/jpeg"
+            });
+
+          if (!stepCtx) {
+            throw new Error("Canvas is not supported.");
+          }
+
+          stepCtx.imageSmoothingEnabled =
+            true;
+
+          stepCtx.imageSmoothingQuality =
+            "high";
+
+          if (formatSelect.value === "image/jpeg") {
+            stepCtx.fillStyle =
+              "#ffffff";
+
+            stepCtx.fillRect(
+              0,
+              0,
+              stepWidth,
+              stepHeight
+            );
+          }
+
+          stepCtx.drawImage(
+            currentCanvas,
+            0,
+            0,
+            stepWidth,
+            stepHeight
+          );
+
+          currentCanvas =
+            stepCanvas;
+
+          currentWidth =
+            stepWidth;
+
+          currentHeight =
+            stepHeight;
+        }
+
+        ctx.drawImage(
+          currentCanvas,
+          0,
+          0,
+          newWidth,
+          newHeight
+        );
+
+        const outputType = formatSelect.value;
+
+        canvas.toBlob(function (blob) {
+
+          if (!blob) {
+            showError("Something went wrong while processing this image. Please try again.");
+            resizeBtn.disabled = false;
+            resizeBtn.textContent = "Resize Image";
+            return;
+          }
+
+          if (resultObjectURL) {
+            URL.revokeObjectURL(resultObjectURL);
+          }
+
+          resultObjectURL = URL.createObjectURL(blob);
+
+          resultImage.src = resultObjectURL;
+
+          resultDimensions.textContent =
+            newWidth + " × " + newHeight + " px";
+
+          resultSize.textContent = formatBytes(blob.size);
+
+          resultFormat.textContent =
+            getFormatName(outputType);
+
+          result.style.display = "block";
+
+          downloadBtn.onclick = function () {
+
+            const extension =
+              outputType === "image/png"
+                ? "png"
+                : outputType === "image/webp"
+                  ? "webp"
+                  : "jpg";
+
+            const originalName =
+              selectedFile.name
+                .replace(/\.[^/.]+$/, "");
+
+            const link = document.createElement("a");
+
+            link.href = resultObjectURL;
+
+            link.download =
+              originalName +
+              "-" +
+              newWidth +
+              "x" +
+              newHeight +
+              "." +
+              extension;
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+          };
+
+          resizeBtn.disabled = false;
+          resizeBtn.textContent = "Resize Image";
+
+          result.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+
+        }, outputType, outputType === "image/png" ? undefined : 0.92);
+
+      } catch (error) {
+
+        showError(
+          "Something went wrong while processing this image. Please try again."
+        );
+
+        resizeBtn.disabled = false;
+        resizeBtn.textContent = "Resize Image";
+      }
+
+    }, 50);
+
+  });
+
+
+  clearBtn.addEventListener("click", function () {
+
+    selectedFile = null;
+
+    fileInput.value = "";
+
+    widthInput.value = "";
+    heightInput.value = "";
+
+    previewImage.removeAttribute("src");
+
+    uploadContent.style.display = "block";
+    imagePreview.style.display = "none";
+
+    fileInfo.style.display = "none";
+
+    result.style.display = "none";
+
+    hideError();
+
+    if (originalObjectURL) {
+      URL.revokeObjectURL(originalObjectURL);
+      originalObjectURL = null;
+    }
+
+    if (resultObjectURL) {
+      URL.revokeObjectURL(resultObjectURL);
+      resultObjectURL = null;
+    }
+
+    originalImage = new Image();
+    aspectRatio = 1;
+
+  });
+
+
+  window.addEventListener("beforeunload", function () {
+
+    if (originalObjectURL) {
+      URL.revokeObjectURL(originalObjectURL);
+    }
+
+    if (resultObjectURL) {
+      URL.revokeObjectURL(resultObjectURL);
+    }
+
+  });
+</script>
+
+</body>
+</html>

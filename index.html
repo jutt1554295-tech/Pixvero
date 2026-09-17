@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Pixvero provides free online image tools to compress, resize, convert and remove image backgrounds directly in your browser.">
+<meta name="robots" content="index, follow">
+<title>Pixvero — Free Online Image Tools</title>
+<style>
+:root{
+  --bg:#06070D;
+  --bg2:#0A0C14;
+  --panel:#0D101A;
+  --panel2:#111522;
+  --text:#F7F8FF;
+  --muted:#9AA2B4;
+  --line:rgba(255,255,255,.09);
+  --purple:#8B5CF6;
+  --violet:#A78BFA;
+  --cyan:#22D3EE;
+  --blue:#60A5FA;
+  --lime:#22D3EE;
+  --shadow:0 35px 100px rgba(0,0,0,.38);
+  --radius:28px;
+  --shell:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-width:320px;
+  background:
+    radial-gradient(circle at 20% 10%,rgba(139,92,246,.14),transparent 28%),
+    radial-gradient(circle at 85% 18%,rgba(34,211,238,.10),transparent 25%),
+    linear-gradient(180deg,#06070D 0%,#101321 42%,#0C0F18 100%);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:80px 80px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.7),transparent 78%);
+}
+a{text-decoration:none;color:inherit}
+button{font:inherit}
+.shell{width:min(var(--shell),calc(100% - 40px));margin:0 auto}
+.site-header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  padding:14px 0;
+  background:rgba(11,13,23,.72);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.site-header.scrolled{
+  background:rgba(11,13,23,.88);
+  border-bottom-color:rgba(255,255,255,.08);
+  box-shadow:0 14px 40px rgba(0,0,0,.18);
+}
+
+.nav-wrap{
+  min-height:64px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.pixvero-logo{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  white-space:nowrap;
+  z-index:3;
+}
+
+.pixvero-logo-icon{
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  display:block;
+}
+
+.pixvero-logo-text{
+  font-size:21px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.7px;
+  color:#F7F8FF;
+  display:inline-flex;
+  align-items:center;
+}
+
+.pixvero-logo-text .pix-i{
+  position:relative;
+}
+
+.pixvero-logo-text .pix-i::before{
+  content:"";
+  position:absolute;
+  width:6px;
+  height:6px;
+  border-radius:2px;
+  top:-4px;
+  left:50%;
+  transform:translateX(-50%);
+  background:linear-gradient(135deg,#22D3EE,#22D3EE);
+  box-shadow:0 0 12px rgba(139,92,246,.35);
+}
+
+.pixvero-logo-text .pix-x{
+  background:linear-gradient(100deg,#22D3EE,#60A5FA,#22D3EE);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.desktop-nav{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  display:flex;
+  align-items:center;
+  gap:0;
+  padding:8px;
+  background:#F7F8FF;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:18px;
+  box-shadow:0 14px 35px rgba(0,0,0,.18);
+  font-size:14px;
+  font-weight:700;
+  color:#171923;
+  white-space:nowrap;
+}
+
+.desktop-nav a{
+  position:relative;
+  padding:11px 17px;
+  border-radius:10px;
+  transition:.25s ease;
+}
+
+.desktop-nav a:not(.nav-cta):hover{
+  background:#ECEBFF;
+  color:#171923;
+}
+
+.desktop-nav a:not(.nav-cta)::after{
+  display:none;
+}
+
+.nav-cta{
+  margin-left:4px;
+  padding:12px 18px !important;
+  border-radius:12px !important;
+  color:#F7F8FF !important;
+  background:#171923 !important;
+  box-shadow:0 7px 18px rgba(0,0,0,.18);
+  transition:.25s ease;
+}
+
+.nav-cta:hover{
+  transform:translateY(-1px);
+  background:#24283A !important;
+}
+
+.mobile-menu{
+  display:none;
+  border:1px solid rgba(255,255,255,.10);
+  background:#15182A;
+  color:#F7F8FF;
+  border-radius:13px;
+  padding:9px 11px;
+  font-size:21px;
+  cursor:pointer;
+  z-index:3;
+}
+.hero{
+  position:relative;
+  min-height:calc(100vh - 90px);
+  display:flex;
+  align-items:center;
+  padding:60px 0 50px;
+  overflow:hidden;
+}
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:-20% -10% 0;
+  background:
+    radial-gradient(circle at 50% 28%,rgba(139,92,246,.20),transparent 24%),
+    radial-gradient(circle at 72% 62%,rgba(34,211,238,.11),transparent 22%),
+    radial-gradient(circle at 28% 68%,rgba(96,165,250,.08),transparent 20%);
+  filter:blur(10px);
+  pointer-events:none;
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:70px 70px;
+  mask-image:radial-gradient(circle at center,black 0%,transparent 72%);
+}
+.energy{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(45px);
+  pointer-events:none;
+  mix-blend-mode:screen;
+  opacity:.9;
+}
+
+.energy.one{
+  width:320px;
+  height:320px;
+  left:-100px;
+  top:8%;
+  background:rgba(139,92,246,.16);
+  animation:driftA 11s ease-in-out infinite;
+}
+
+.energy.two{
+  width:280px;
+  height:280px;
+  right:-40px;
+  top:20%;
+  background:rgba(34,211,238,.12);
+  animation:driftB 13s ease-in-out infinite;
+}
+
+.energy.three{
+  width:240px;
+  height:240px;
+  left:38%;
+  bottom:-40px;
+  background:rgba(96,165,250,.10);
+  animation:driftC 10s ease-in-out infinite;
+}
+.hero-copy{
+  max-width:900px;
+  text-align:center;
+  position:relative;
+  z-index:3;
+}
+.hero-grid{
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:0;
+  align-items:center;
+  justify-items:center;
+  position:relative;
+  z-index:2;
+}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 12px;border-radius:999px;
+  color:#DBE2F2;background:rgba(255,255,255,.045);border:1px solid var(--line);
+  font-size:11px;font-weight:900;letter-spacing:.17em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04)
+}
+.eyebrow::before{content:"";width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--cyan));box-shadow:0 0 16px rgba(139,92,246,.7)}
+.eyebrow-dot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  font-size:0;
+  line-height:0;
+  border-radius:50%;
+  background:#22D3EE;
+  vertical-align:middle;
+}
+.hero h1{
+  margin:22px 0 20px;
+  font-size:clamp(44px,5.4vw,70px);
+  line-height:1;
+  letter-spacing:-3.2px;
+  font-weight:950;
+  text-shadow:0 12px 40px rgba(0,0,0,.18);
+}
+.hero h1 .gradient{
+  display:inline-block;
+  background:linear-gradient(105deg,#A78BFA 5%,#60A5FA 42%,#22D3EE 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 12px 35px rgba(86,80,255,.16))
+}
+.hero p{
+  width:100%;
+  max-width:760px;
+  margin-left:auto;
+  margin-right:auto;
+  text-align:center;
+  color:#AEB6C8;
+  font-size:18px;
+  line-height:1.8;
+}
+.hero-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:12px;
+  min-height:52px;padding:0 19px;border-radius:14px;font-size:14px;font-weight:850;transition:.28s ease
+}
+.btn-primary{
+  color:#10131D;background:linear-gradient(135deg,#F7F8FF 0%,#DFE8FF 50%,#22D3EE 100%);
+  box-shadow:0 14px 38px rgba(0,0,0,.3)
+}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 22px 50px rgba(0,0,0,.38)}
+.btn-ghost{color:#F7F8FF;background:rgba(255,255,255,.045);border:1px solid var(--line)}
+.btn-ghost:hover{transform:translateY(-3px);background:rgba(255,255,255,.075);border-color:rgba(167,139,250,.35)}
+.hero-trust{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin-top:24px;color:#AEB6C8;font-size:12px;font-weight:700}
+.hero-trust span{display:inline-flex;align-items:center;gap:7px}
+.hero-trust i{font-style:normal;width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:rgba(139,92,246,.25);color:#A78BFA;border:1px solid rgba(139,92,246,.20)}
+
+.section{
+  padding:110px 0;
+  position:relative;
+  scroll-margin-top:100px;
+}
+.section.alt{background:linear-gradient(180deg,rgba(255,255,255,.012),rgba(255,255,255,.02))}
+.section-head{max-width:780px;margin-bottom:44px}
+.section-head .eyebrow{margin-bottom:15px}
+.section-head h2{
+  margin:0;
+  font-size:clamp(34px,4vw,52px);
+  line-height:1.05;
+  letter-spacing:-2px;
+  font-weight:950;
+  background:linear-gradient(105deg,#F7F8FF 15%,#A78BFA 55%,#22D3EE 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.section-head p{
+  max-width:680px;
+  margin:16px auto 0;
+  color:#9AA2B4;
+  font-size:16px;
+  line-height:1.75;
+}
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  position:relative;
+}
+
+.tools-grid::before{
+  content:"";
+  position:absolute;
+  width:420px;
+  height:260px;
+  left:50%;
+  top:35%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(
+    circle,
+    rgba(139,92,246,.10),
+    transparent 70%
+  );
+  filter:blur(35px);
+  pointer-events:none;
+  z-index:0;
+}
+
+.tools-grid > *{
+  position:relative;
+  z-index:1;
+}
+.tool-card{
+  display:flex;
+flex-direction:column;
+  position:relative;
+  overflow:hidden;
+  padding:28px;
+  border-radius:22px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.025));
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.045);
+  transition:
+    transform .3s ease,
+    border-color .3s ease,
+    box-shadow .3s ease,
+    background .3s ease;
+}
+.tool-card::before{
+  content:"";position:absolute;inset:-40% -20% auto auto;width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(139,92,246,.14),transparent 68%);pointer-events:none
+}
+.tool-card:hover{
+  transform:translateY(-8px);
+  border-color:rgba(139,92,246,.32);
+  background:
+    linear-gradient(145deg,rgba(139,92,246,.09),rgba(255,255,255,.035));
+  box-shadow:
+    0 28px 70px rgba(0,0,0,.32),
+    0 0 35px rgba(139,92,246,.08);
+}
+.tool-top{display:flex;align-items:center;justify-content:space-between}
+.tool-num{font-size:10px;letter-spacing:.14em;color:#7F8A9E;font-weight:900}
+.tool-icon{
+  width:52px;
+  height:52px;
+  display:grid;
+  place-items:center;
+  margin-bottom:20px;
+  border-radius:16px;
+  background:linear-gradient(
+    135deg,
+    rgba(139,92,246,.20),
+    rgba(34,211,238,.10)
+  );
+  border:1px solid rgba(167,139,250,.18);
+  color:#A78BFA;
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+.tool-icon.purple{background:rgba(139,92,246,.14);color:#A78BFA}
+.tool-icon.cyan{background:rgba(34,211,238,.11);color:#22D3EE}
+.tool-icon.mix{background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(34,211,238,.10));color:#60A5FA}
+.tool-card h3{
+  margin:0 0 10px;
+  color:#F7F8FF;
+  font-size:21px;
+  line-height:1.2;
+  letter-spacing:-.6px;
+}
+.tool-card p{
+  margin:0;
+  color:#9AA2B4;
+  font-size:14px;
+  line-height:1.7;
+}
+.tool-meta{display:flex;justify-content:space-between;gap:10px;align-items:end;margin-top:auto;color:#748096;font-size:10px;font-weight:850}
+.tool-meta a{color:#F7F8FF;font-size:11px}
+.tool-meta a:hover{color:#A78BFA}
+.marquee{
+  padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;
+  background:rgba(255,255,255,.018)
+}
+.marquee-track{display:flex;gap:42px;width:max-content;animation:marquee 32s linear infinite;padding-left:20px}
+.marquee span{color:#7F8A9E;font-size:11px;font-weight:900;letter-spacing:.12em;white-space:nowrap}
+.marquee b{color:#B9C2D3}
+.privacy-grid{display:grid;grid-template-columns:1fr 1fr;gap:58px;align-items:center}
+.privacy-copy h2{
+  font-size:clamp(38px,5vw,60px);
+  line-height:1.05;
+  letter-spacing:-2.8px;
+  margin:18px 0;
+  font-weight:950;
+  background:linear-gradient(
+    105deg,
+    #F7F8FF 10%,
+    #A78BFA 52%,
+    #60A5FA 75%,
+    #22D3EE 100%
+  );
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 10px 35px rgba(86,80,255,.12);
+}
+.privacy-copy p{color:var(--muted);font-size:17px;max-width:600px}
+.privacy-copy .btn{margin-top:24px}
+.privacy-panel{
+  padding:28px;border-radius:28px;background:linear-gradient(145deg,#151A29,#0E131F);
+  border:1px solid var(--line);box-shadow:var(--shadow)
+}
+.panel-label{display:flex;justify-content:space-between;align-items:center;color:#8B97AA;font-size:10px;font-weight:900;letter-spacing:.13em}
+.panel-label strong{color:var(--lime)}
+.flow{margin-top:20px}
+.flow-row{display:grid;grid-template-columns:86px 1fr 1fr;gap:12px;align-items:center;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px}
+.flow-row span:first-child{color:#9FAABD}.flow-line{height:1px;background:linear-gradient(90deg,rgba(139,92,246,.7),rgba(34,211,238,.65));position:relative}.flow-line::after{content:"";position:absolute;right:-1px;top:-3px;width:7px;height:7px;border-radius:50%;background:#A78BFA;box-shadow:0 0 15px #A78BFA}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.badge{font-size:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.045);color:#9AA2B4;border:1px solid rgba(255,255,255,.07)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:26px;overflow:hidden}
+.step{
+  position:relative;
+  padding:28px;
+  min-height:220px;
+  border-radius:22px;
+  background:linear-gradient(
+    145deg,
+    rgba(255,255,255,.055),
+    rgba(255,255,255,.02)
+  );
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  transition:.3s ease;
+}
+
+.step:hover{
+  transform:translateY(-6px);
+  border-color:rgba(34,211,238,.25);
+  box-shadow:
+    0 25px 65px rgba(0,0,0,.28),
+    0 0 30px rgba(34,211,238,.06);
+}
+.features{background:linear-gradient(180deg,#101522,#111729)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.feature{
+  position:relative;
+  overflow:hidden;
+  padding:24px;
+  border-radius:22px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.06),
+      rgba(255,255,255,.025)
+    );
+  border:1px solid rgba(255,255,255,.08);
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  transition:.3s ease;
+}
+.feature:hover{
+  transform:translateY(-6px);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(139,92,246,.09),
+      rgba(255,255,255,.035)
+    );
+  border-color:rgba(139,92,246,.30);
+  box-shadow:
+    0 25px 65px rgba(0,0,0,.28),
+    0 0 30px rgba(139,92,246,.07);
+}
+.feature>span{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:rgba(139,92,246,.13);font-size:18px}
+.feature strong{display:block;font-size:14px}.feature small{display:block;color:#7F8A9E;font-size:11px;margin-top:4px}
+.faq{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.faq details{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.055),
+      rgba(255,255,255,.02)
+    );
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:20px 22px;
+  box-shadow:
+    0 15px 40px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  transition:.3s ease;
+}
+.faq details:hover{
+  border-color:rgba(139,92,246,.30);
+  transform:translateY(-4px);
+  box-shadow:
+    0 22px 50px rgba(0,0,0,.24),
+    0 0 28px rgba(139,92,246,.06);
+}
+.faq details[open]{border-color:rgba(167,139,250,.34);box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.faq summary{cursor:pointer;font-weight:850;font-size:14px;padding-right:12px}.faq p{color:#AEB6C8;font-size:13px;margin:12px 0 2px}
+.cta{padding:0 0 110px}
+.cta-box{
+  position:relative;
+  overflow:hidden;
+  text-align:center;
+  padding:82px 30px;
+  border-radius:32px;
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(139,92,246,.30),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(34,211,238,.22),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      #111522,
+      #0D111C
+    );
+  border:1px solid rgba(255,255,255,.11);
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+.cta-box::after{content:"";position:absolute;inset:-30%;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 48%);animation:slowPulse 8s ease-in-out infinite}
+.cta-box>*{position:relative;z-index:2}
+.cta-box h2{
+  font-size:clamp(38px,5vw,56px);
+  line-height:1.05;
+  letter-spacing:-2.6px;
+  max-width:800px;
+  margin:18px auto;
+  font-weight:950;
+  text-shadow:0 10px 35px rgba(0,0,0,.25);
+}
+.cta-box p{color:#9FAABD;max-width:630px;margin:0 auto 28px}
+footer{padding:62px 0 24px;border-top:1px solid var(--line);background:#090D15}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:50px}
+footer p{color:#7F8A9E;max-width:310px;font-size:13px;margin-top:12px}
+footer h4{font-size:12px;margin-bottom:12px}
+footer .footer-link{display:block;color:#7F8A9E;font-size:12px;margin:7px 0}
+footer .footer-link:hover{color:#F7F8FF}
+.footer-copy{border-top:1px solid rgba(255,255,255,.07);margin-top:36px;padding-top:18px;color:#69758A;font-size:11px}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:var(--delay,0s)}
+.reveal-left{transform:translateX(-32px)}.reveal-right{transform:translateX(32px)}.in-view{opacity:1;transform:none}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes driftA{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(60px,-30px,0)}}@keyframes driftB{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(-40px,30px,0)}}@keyframes driftC{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(35px,-18px,0)}}
+@keyframes marquee{to{transform:translateX(-50%)}}@keyframes slowPulse{0%,100%{transform:scale(.95);opacity:.45}50%{transform:scale(1.05);opacity:.8}}
+@media(max-width:1050px){.hero-grid{grid-template-columns:1fr;gap:20px}.hero-copy{max-width:850px}.tools-grid{grid-template-columns:repeat(2,1fr)}.privacy-grid{grid-template-columns:1fr}.features-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){
+  .desktop-nav{
+    position:absolute;
+    left:20px;
+    right:20px;
+    top:76px;
+    transform:none;
+    padding:14px;
+    background:rgba(10,12,18,.98);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:0 25px 60px rgba(0,0,0,.35);
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+    display:none;
+  }
+
+  .desktop-nav.open{
+    display:flex;
+  }
+
+  .desktop-nav a{
+  padding:11px 12px;
+  color:#F7F8FF !important;
+}
+  .desktop-nav .nav-cta{
+    text-align:center;
+    margin-left:0;
+  }
+
+  .mobile-menu{
+    display:block;
+  }
+
+  .nav-wrap{
+    justify-content:space-between;
+  }
+
+  .faq{
+    grid-template-columns:1fr;
+  }
+
+  .footer-grid{
+    grid-template-columns:1fr 1fr;
+  }
+}
+@media(max-width:560px){
+  .shell{width:min(100% - 28px,var(--shell))}
+  .site-header{padding:10px 0}.nav-wrap{min-height:58px}.pixvero-logo{gap:9px}.pixvero-logo-icon{width:38px;height:38px;flex-basis:38px}.pixvero-logo-text{font-size:19px}
+  .hero{
+  padding:45px 0 45px;
+}
+
+.hero-copy{
+  transform:translateY(-45px);
+}
+.hero h1{
+  font-size:47px;letter-spacing:-2.6px;line-height:1.02}.hero p{font-size:16px;line-height:1.7}.hero-actions{
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+.hero-actions .btn{
+  width:auto;
+}.btn{width:auto;}
+  .section{padding:82px 0}.tools-grid{grid-template-columns:1fr}.features-grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.step{min-height:210px}.footer-grid{grid-template-columns:1fr}.cta{padding-bottom:80px}.cta-box{padding:50px 20px}
+  .hero h1,
+.section-head h2,
+.privacy-copy h2,
+.tool-card h3,
+.step h3,
+.cta-box h2{
+  line-height:1.12 !important;
+  letter-spacing:-1.5px !important;
+}
+
+.hero h1{
+  font-size:40px !important;
+}
+
+.section-head h2{
+  font-size:38px !important;
+}
+
+.privacy-copy h2{
+  font-size:38px !important;
+}
+
+.tool-card h3,
+.step h3{
+  font-size:22px !important;
+}
+
+.cta-box h2{
+  font-size:39px !important;
+}
+
+.section-head p,
+.privacy-copy p,
+.cta-box p,
+.tool-card p,
+.step p{
+  line-height:1.7 !important;
+}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .reveal{
+    opacity:1;
+    transform:none;
+    transition:none
+  }
+  .energy,
+  .marquee-track,
+  .cta-box::after{
+    animation:none!important
+  }
+}
+.privacy-section{
+  padding-top:90px;
+}
+
+.privacy-content{
+  max-width:900px;
+  margin:0 auto;
+  padding:34px;
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:rgba(255,255,255,.035);
+  box-shadow:0 20px 60px rgba(0,0,0,.12);
+}
+
+.privacy-content h3{
+  margin:28px 0 10px;
+  font-size:19px;
+  line-height:1.3;
+  color:#F7F8FF;
+}
+
+.privacy-content h3:first-child{
+  margin-top:0;
+}
+
+.privacy-content p{
+  margin:0;
+  color:#AEB6C8;
+  font-size:15px;
+  line-height:1.8;
+}
+
+.privacy-updated{
+  margin-top:32px!important;
+  padding-top:22px;
+  border-top:1px solid var(--line);
+}
+
+
+
+</style>
+</head>
+<body>
+<header class="site-header" id="siteHeader">
+  <div class="shell nav-wrap">
+    <a class="pixvero-logo" href="#top" aria-label="Pixvero Home">
+      <svg
+                class="pixvero-logo-icon"
+                viewBox="0 0 64 64"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+            >
+                <defs>
+    <linearGradient
+        id="pixveroPGradient"
+        x1="10"
+        y1="54"
+        x2="54"
+        y2="10"
+        gradientUnits="userSpaceOnUse"
+    >
+        <stop offset="0" stop-color="#8B5CF6"/>
+        <stop offset="0.5" stop-color="#60A5FA"/>
+        <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+
+    <linearGradient
+        id="pixveroGlowGradient"
+        x1="8"
+        y1="8"
+        x2="56"
+        y2="56"
+        gradientUnits="userSpaceOnUse"
+    >
+        <stop offset="0" stop-color="#18233D"/>
+        <stop offset="1" stop-color="#0B1020"/>
+    </linearGradient>
+</defs>
+
+<rect
+    x="2"
+    y="2"
+    width="60"
+    height="60"
+    rx="18"
+    fill="url(#pixveroGlowGradient)"
+/>
+
+<rect
+    x="2.75"
+    y="2.75"
+    width="58.5"
+    height="58.5"
+    rx="17.25"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-opacity="0.10"
+    stroke-width="1.5"
+/>
+
+<path
+    d="
+        M20 47
+        V17
+        H30.5
+        C39 17 44 21 44 27.5
+        C44 34 39 38 30.5 38
+        H26.5
+        V47
+        H20
+        Z
+
+        M26.5 23
+        V32.5
+        H30
+        C34.2 32.5 37 31 37 27.7
+        C37 24.5 34.2 23 30 23
+        Z
+    "
+    fill="url(#pixveroPGradient)"
+    fill-rule="evenodd"
+/>
+
+<path
+    d="
+        M20 47
+        C20 38 20 29 20 17
+        H26.5
+        V47
+        Z
+    "
+    fill="url(#pixveroPGradient)"
+    opacity="0.92"
+/>
+
+<rect
+    x="42"
+    y="12"
+    width="6"
+    height="6"
+    rx="1.8"
+    fill="#22D3EE"
+/>
+
+<rect
+    x="49"
+    y="20"
+    width="7"
+    height="7"
+    rx="2"
+    fill="#60A5FA"
+/>
+
+<rect
+    x="43"
+    y="29"
+    width="5"
+    height="5"
+    rx="1.6"
+    fill="#8B5CF6"
+/>
+            </svg>
+      <span class="pixvero-logo-text">P<span class="pix-i">i</span><span class="pix-x">x</span>vero</span>
+    </a>
+    <nav class="desktop-nav" id="mainNav">
+      <a href="#tools">Tools</a>
+      <a href="#how">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#faq">FAQ</a>
+      <a class="nav-cta" href="#tools">Start Using</a>
+    </nav>
+    <button class="mobile-menu" type="button" aria-label="Open navigation menu" aria-expanded="false" onclick="toggleMenu(this)">☰</button>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="energy one"></div><div class="energy two"></div><div class="energy three"></div>
+  <div class="shell hero-grid">
+    <div class="hero-copy reveal reveal-left">
+      <span class="eyebrow">PRIVATE <b class="eyebrow-dot">•</b> FAST <b class="eyebrow-dot">•</b> BROWSER-BASED</span>
+      <h1>Powerful image tools <span class="gradient">made beautifully simple </span></h1>
+      <p>Compress, resize, convert and remove image backgrounds in seconds — with a polished browser-first workflow designed for everyday image tasks </p>
+      <div class="hero-actions">
+  <a class="btn btn-ghost" href="#tools">Explore Pixvero Tools <b>↓</b></a>
+</div>
+      <div class="hero-trust">
+        <span><i>✓</i>No account</span><span><i>✓</i>Browser processing</span><span><i>✓</i>Fast downloads</span>
+         </div>
+
+      </div>
+  </div>
+</section>
+
+<div class="marquee" aria-label="Pixvero capabilities">
+  <div class="marquee-track">
+    <span><b>JPG</b> • PNG • WebP</span><span><b>LOCAL-FIRST</b> processing</span><span><b>4 FOCUSED</b> image tools</span><span><b>RESPONSIVE</b> on every screen</span>
+    <span><b>JPG</b> • PNG • WebP</span><span><b>LOCAL-FIRST</b> processing</span><span><b>4 FOCUSED</b> image tools</span><span><b>RESPONSIVE</b> on every screen</span>
+  </div>
+</div>
+
+<section id="tools" class="section alt">
+  <div class="shell">
+    <div class="section-head reveal">
+      <span class="eyebrow">CORE TOOLS</span>
+      <h2>One workspace. Four focused image tools </h2>
+      <p>Everything you need to prepare images for websites, social posts, documents and everyday digital work </p>
+    </div>
+    <div class="tools-grid">
+      <article class="tool-card reveal" style="--delay:.05s"><div class="tool-top"><span class="tool-num">01</span><span class="tool-icon purple">↘</span></div><h3>Image Compressor</h3><p>Reduce file size while keeping visual quality under your control.</p><div class="tool-meta"><span>JPG • PNG • WebP</span><a href="image-compressor.html">Open tool ↗</a></div></article>
+      <article class="tool-card reveal" style="--delay:.10s"><div class="tool-top"><span class="tool-num">02</span><span class="tool-icon cyan">↔</span></div><h3>Image Resizer</h3><p>Set exact dimensions with aspect-ratio protection and practical presets.</p><div class="tool-meta"><span>Custom dimensions</span><a href="image-resizer.html">Open tool ↗</a></div></article>
+      <article class="tool-card reveal" style="--delay:.15s"><div class="tool-top"><span class="tool-num">03</span><span class="tool-icon mix">✂</span></div><h3>Background Remover</h3><p>Cut out backgrounds and export a clean transparent PNG from supported images.</p><div class="tool-meta"><span>JPG • PNG • WebP</span><a href="bg-remover.html">Open tool ↗</a></div></article>
+      <article class="tool-card reveal" style="--delay:.20s"><div class="tool-top"><span class="tool-num">04</span><span class="tool-icon mix">⇄</span></div><h3>Image Converter</h3><p>Convert between popular JPG, PNG and WebP formats directly in your browser.</p><div class="tool-meta"><span>Multi-file workflow</span><a href="image-converter.html">Open tool ↗</a></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="about">
+  <div class="shell privacy-grid">
+    <div class="privacy-copy reveal reveal-left">
+      <span class="eyebrow">PRIVACY FIRST</span>
+      <h2>Your image workflow stays close to your device </h2>
+      <p>Pixvero is designed around browser-side processing for the core workflow, so your image tools feel fast, focused and simple without an account-heavy experience </p>
+      <a class="btn btn-ghost" href="#faq">Learn how Pixvero handles files ↗</a>
+    </div>
+    <div class="privacy-panel reveal reveal-right">
+      <div class="panel-label"><span>LOCAL WORKFLOW</span><strong>SECURE</strong></div>
+      <div class="flow">
+        <div class="flow-row"><span>Upload</span><i class="flow-line"></i><b>Your browser</b></div>
+        <div class="flow-row"><span>Process</span><i class="flow-line"></i><b>Your browser</b></div>
+        <div class="flow-row"><span>Download</span><i class="flow-line"></i><b>Your device</b></div>
+      </div>
+      <div class="badges"><span class="badge">✓ No account required</span><span class="badge">✓ No permanent image storage</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="section alt">
+  <div class="shell">
+    <div class="section-head reveal"><span class="eyebrow">HOW IT WORKS</span><h2>From image to finished file in three steps </h2><p>A clear path from upload to result, without a cluttered workflow </p></div>
+    <div class="steps">
+      <article class="step reveal" style="--delay:.05s"><span>01</span><h3>Choose your image</h3><p>Drop a file into a tool or use the normal file picker.</p></article>
+      <article class="step reveal" style="--delay:.15s"><span>02</span><h3>Choose your settings</h3><p>Set quality, dimensions, format or background-removal task.</p></article>
+      <article class="step reveal" style="--delay:.25s"><span>03</span><h3>Save the result</h3><p>Preview the result and download the finished file.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="section features">
+  <div class="shell">
+    <div class="section-head reveal"><span class="eyebrow">WHY PIXVERO</span><h2>Premium details without the unnecessary complexity </h2><p>Built to feel fast and confident whether you are editing one image or preparing a whole set</p></div>
+    <div class="features-grid">
+      <div class="feature reveal"><span>⚡</span><div><strong>Fast processing</strong><small>Runs locally where supported</small></div></div>
+      <div class="feature reveal"><span>🔒</span><div><strong>Privacy-focused</strong><small>No permanent image storage</small></div></div>
+      <div class="feature reveal"><span>✂</span><div><strong>Background removal</strong><small>Create transparent PNG results</small></div></div>
+      <div class="feature reveal"><span>🖼️</span><div><strong>Popular formats</strong><small>JPG, PNG and WebP</small></div></div>
+      <div class="feature reveal"><span>📱</span><div><strong>Responsive UI</strong><small>Desktop, tablet and mobile</small></div></div>
+      <div class="feature reveal"><span>↓</span><div><strong>Easy downloads</strong><small>Clear result actions</small></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="faq" id="faq">
+
+  <details class="reveal">
+    <summary>Is Pixvero free to use?</summary>
+    <p>Yes. Pixvero's core image tools are designed to be free to use without an account.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Do I need to create an account?</summary>
+    <p>No. You can use the compressor, resizer, background remover and converter without signing up.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Are my images uploaded to a server?</summary>
+    <p>The core workflow is designed around browser-side processing, so basic processing does not require sending the image to a Pixvero server.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Does Pixvero work on mobile devices?</summary>
+    <p>Yes. Pixvero is designed to work across modern desktop, tablet and mobile browsers.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>What image formats are supported?</summary>
+    <p>JPG/JPEG, PNG and WebP are the primary formats supported by the core tools.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Can I compress JPG, PNG and WebP images?</summary>
+    <p>Yes. The Image Compressor supports common image formats including JPG/JPEG, PNG and WebP.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Will image compression reduce quality?</summary>
+    <p>Pixvero is designed to reduce file size while keeping the output visually useful for everyday image sharing and web use.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Can I resize an image without stretching it?</summary>
+    <p>Yes. The Image Resizer includes an aspect-ratio lock to help prevent unwanted stretching.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Can I choose custom image dimensions?</summary>
+    <p>Yes. You can enter custom width and height values when resizing an image.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Can I convert JPG to PNG?</summary>
+    <p>Yes. JPG to PNG and other common image conversion pairs are supported by the Image Converter.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Can I convert PNG to JPG?</summary>
+    <p>Yes. PNG images can be converted to JPG using the Image Converter.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Can I convert WebP images?</summary>
+    <p>Yes. WebP is supported by Pixvero's core image conversion workflow.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Can I remove a background from an image?</summary>
+    <p>Yes. Pixvero includes a browser-based Background Remover that can create a transparent PNG result from a supported image.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Does the Background Remover create a transparent PNG?</summary>
+    <p>Yes. The Background Remover exports the finished result as a transparent PNG.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Do I need to install any software?</summary>
+    <p>No. Pixvero's tools are designed to run directly in your web browser without requiring a separate desktop application.</p>
+  </details>
+
+  <details class="reveal">
+    <summary>Can I download my processed image?</summary>
+    <p>Yes. After processing, you can download the resulting image directly from the tool.</p>
+  </details>
+
+</div>
+<!-- Privacy Policy -->
+<section id="privacy-policy" class="section privacy-section">
+  <div class="shell">
+
+    <div class="section-head reveal">
+      <span class="eyebrow">PRIVACY POLICY</span>
+      <h2>Your privacy matters </h2>
+      <p>Pixvero is designed to keep your image workflow simple, private and transparent </p>
+    </div>
+
+    <div class="privacy-content reveal">
+
+      <h3>1. Information We Collect</h3>
+      <p>
+        Pixvero is designed so that you can use our core image tools without creating
+        an account or providing personal information. We do not require your name,
+        email address or account information to use the basic image tools.
+      </p>
+
+      <h3>2. How Image Processing Works</h3>
+      <p>
+        Pixvero's core image tools are designed to process images directly in your
+        web browser. Images processed through these tools are not intentionally
+        uploaded to a Pixvero server for basic processing.
+      </p>
+
+      <h3>3. Background Removal</h3>
+      <p>
+        The Background Remover uses browser-based processing technology. Depending
+        on the tool implementation, required models or supporting resources may be
+        downloaded to your browser so that processing can take place locally.
+      </p>
+
+      <h3>4. Cookies and Similar Technologies</h3>
+      <p>
+        Pixvero may use cookies or similar technologies for essential website
+        functionality, analytics, performance measurement, advertising and improving
+        the user experience.
+      </p>
+
+      <h3>5. Advertising</h3>
+      <p>
+        Pixvero may display advertisements from third-party advertising providers.
+        These providers may use cookies or similar technologies to deliver and
+        measure advertisements in accordance with their own privacy policies.
+      </p>
+
+      <h3>6. Third-Party Services</h3>
+      <p>
+        Pixvero may rely on third-party services, libraries, content delivery
+        networks, analytics providers or advertising partners to operate and
+        improve the website. These services may process limited technical
+        information according to their own policies.
+      </p>
+
+      <h3>7. Data Security</h3>
+      <p>
+        We take reasonable steps to protect the website and provide a safe user
+        experience. However, no website or internet transmission can be guaranteed
+        to be completely secure.
+      </p>
+
+      <h3>8. Children's Privacy</h3>
+      <p>
+        Pixvero is not intended to knowingly collect personal information from
+        children. We encourage parents or guardians to supervise internet use by
+        children.
+      </p>
+
+      <h3>9. Changes to This Privacy Policy</h3>
+      <p>
+        We may update this Privacy Policy from time to time to reflect changes to
+        our website, services or legal requirements. Any updates will be posted on
+        this page.
+      </p>
+
+      <h3>10. Contact</h3>
+      <p>
+        If you have questions about this Privacy Policy or Pixvero's privacy
+        practices, please contact us through the contact method provided on the
+        website.
+      </p>
+
+      <p class="privacy-updated">
+        <strong>Last Updated:</strong> September 11, 2026
+      </p>
+
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="shell">
+    <div class="cta-box reveal">
+      <span class="eyebrow">READY WHEN YOU ARE</span>
+      <h2>Make your next image task feel effortless </h2>
+      <p>Pick a tool, drop in an image and get moving </p>
+      <a class="btn btn-primary" href="#tools">Try a Tool Now ↗</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="shell footer-grid">
+    <div>
+      <a class="pixvero-logo" href="#top" aria-label="Pixvero Home"><svg
+                class="pixvero-logo-icon"
+                viewBox="0 0 64 64"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+            >
+                <defs>
+                    <linearGradient
+                        id="pixveroPGradient"
+                        x1="10"
+                        y1="54"
+                        x2="54"
+                        y2="10"
+                        gradientUnits="userSpaceOnUse"
+                    >
+                        <stop offset="0" stop-color="#A46BFF"/>
+                        <stop offset="0.5" stop-color="#7C6CFF"/>
+                        <stop offset="1" stop-color="#22D3EE"/>
+                    </linearGradient>
+
+                    <linearGradient
+                        id="pixveroGlowGradient"
+                        x1="8"
+                        y1="8"
+                        x2="56"
+                        y2="56"
+                        gradientUnits="userSpaceOnUse"
+                    >
+                        <stop offset="0" stop-color="#18233D"/>
+                        <stop offset="1" stop-color="#0B1020"/>
+                    </linearGradient>
+                </defs>
+
+                <rect x="2" y="2" width="60" height="60" rx="18"
+                      fill="url(#pixveroGlowGradient)"/>
+
+                <rect x="2.75" y="2.75" width="58.5" height="58.5"
+                      rx="17.25"
+                      fill="none"
+                      stroke="#FFFFFF"
+                      stroke-opacity="0.10"
+                      stroke-width="1.5"/>
+
+                <path
+                    d="
+                        M20 47
+                        V17
+                        H30.5
+                        C39 17 44 21 44 27.5
+                        C44 34 39 38 30.5 38
+                        H26.5
+                        V47
+                        H20
+                        Z
+
+                        M26.5 23
+                        V32.5
+                        H30
+                        C34.2 32.5 37 31 37 27.7
+                        C37 24.5 34.2 23 30 23
+                        Z
+                    "
+                    fill="url(#pixveroPGradient)"
+                    fill-rule="evenodd"
+                />
+
+                <path
+                    d="
+                        M20 47
+                        C20 38 20 29 20 17
+                        H26.5
+                        V47
+                        Z
+                    "
+                    fill="url(#pixveroPGradient)"
+                    opacity="0.92"
+                />
+
+                <rect x="42" y="12" width="6" height="6" rx="1.8"
+                      fill="#22D3EE"/>
+
+                <rect x="49" y="20" width="7" height="7" rx="2"
+                      fill="#7C6CFF"/>
+
+                <rect x="43" y="29" width="5" height="5" rx="1.6"
+                      fill="#A46BFF"/>
+            </svg><span class="pixvero-logo-text">P<span class="pix-i">i</span><span class="pix-x">x</span>vero</span></a>
+      <p>Simple, privacy-focused online image tools with a premium browser-first workflow </p>
+    </div>
+    <div><h4>Tools</h4><a class="footer-link" href="image-compressor.html">Image Compressor</a><a class="footer-link" href="image-resizer.html">Image Resizer</a><a class="footer-link" href="bg-remover.html">Background Remover</a><a class="footer-link" href="image-converter.html">Image Converter</a></div> 
+<div><h4>Explore</h4><a class="footer-link" href="#how">How It Works</a><a class="footer-link" href="#features">Features</a><a class="footer-link" href="#faq">FAQ</a><a class="footer-link" href="#privacy-policy">Privacy Policy</a></div>
+  </div>
+  <div class="shell footer-copy">© 2026 Pixvero. All rights reserved.</div>
+</footer>
+
+
+<script>
+
+function toggleMenu(button){
+  const nav=document.getElementById('mainNav');
+  nav.classList.toggle('open');
+  button.setAttribute('aria-expanded',nav.classList.contains('open')?'true':'false');
+}
+document.querySelectorAll('#mainNav a').forEach(link=>{
+  link.addEventListener('click',()=>{
+    const nav=document.getElementById('mainNav');
+    const menu=document.querySelector('.mobile-menu');
+    nav.classList.remove('open');
+    menu.setAttribute('aria-expanded','false');
+  });
+});
+const header=document.getElementById('siteHeader');
+window.addEventListener('scroll',()=>header.classList.toggle('scrolled',window.scrollY>18),{passive:true});
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){entry.target.classList.add('in-view');observer.unobserve(entry.target);}
+  });
+},{threshold:.12,rootMargin:'0px 0px -50px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+</script>
+</body>
+</html>
