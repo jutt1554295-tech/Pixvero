@@ -1697,13 +1697,56 @@
 
     function isMobileDevice() {
         return (
-            window.matchMedia(
-                "(max-width: 760px)"
-            ).matches ||
+            window.matchMedia("(max-width: 760px)").matches ||
             navigator.maxTouchPoints > 0
         );
     }
 
+    function sleep(ms) {
+        return new Promise(function(resolve) {
+            setTimeout(resolve, ms);
+        });
+    }
+
+    function getSafeProcessingProfile() {
+        const mobile = isMobileDevice();
+
+        if (!mobile) {
+            return {
+                maxDimension: 2048,
+                maxPixels: 2500000
+            };
+        }
+
+        /*
+         * Background removal is an on-device neural-network operation.
+         * The uploaded file size (10 KB, 10 MB, 15 MB, etc.) is NOT used
+         * as the processing limit. Instead, the working pixel dimensions
+         * are reduced automatically so large camera photos can still be
+         * processed on mobile devices.
+         */
+        const deviceMemory =
+            Number(navigator.deviceMemory || 0);
+
+        if (deviceMemory > 0 && deviceMemory <= 2) {
+            return {
+                maxDimension: 768,
+                maxPixels: 600000
+            };
+        }
+
+        if (deviceMemory > 0 && deviceMemory <= 4) {
+            return {
+                maxDimension: 1024,
+                maxPixels: 1000000
+            };
+        }
+
+        return {
+            maxDimension: 1280,
+            maxPixels: 1500000
+        };
+    }
 
     function loadImageForProcessing(file) {
         return new Promise(function(resolve, reject) {
@@ -1719,84 +1762,19 @@
 
             image.onerror = function() {
                 URL.revokeObjectURL(url);
-                reject(new Error("Could not load image for processing."));
+                reject(
+                    new Error(
+                        "Could not decode this image."
+                    )
+                );
             };
 
             image.src = url;
         });
     }
 
-
-    async function prepareBackgroundInput(file) {
-        const mobile = isMobileDevice();
-        const image = await loadImageForProcessing(file);
-
-        const sourcePixels =
-            image.naturalWidth *
-            image.naturalHeight;
-
-        /*
-         * Background removal uses an on-device ML model.
-         * Very large phone photos can exceed mobile memory limits,
-         * so cap mobile work to about 4 MP / 2048 px while keeping
-         * desktop images at a larger working size.
-         */
-        const maxDimension = mobile ? 2048 : 3072;
-        const maxPixels = mobile ? 4000000 : 12000000;
-
-        const scale =
-            sourcePixels > maxPixels ||
-            image.naturalWidth > maxDimension ||
-            image.naturalHeight > maxDimension
-                ? Math.min(
-                    maxDimension / image.naturalWidth,
-                    maxDimension / image.naturalHeight,
-                    Math.sqrt(
-                        maxPixels / sourcePixels
-                    )
-                )
-                : 1;
-
-        if (scale >= 1) {
-            return {
-                file,
-                resized: false
-            };
-        }
-
-        const width = Math.max(
-            1,
-            Math.round(image.naturalWidth * scale)
-        );
-
-        const height = Math.max(
-            1,
-            Math.round(image.naturalHeight * scale)
-        );
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
-        const context = canvas.getContext("2d", {
-            alpha: true
-        });
-
-        if (!context) {
-            throw new Error("Your browser cannot create a processing canvas.");
-        }
-
-        context.imageSmoothingEnabled = true;
-        context.imageSmoothingQuality = "high";
-        context.drawImage(
-            image,
-            0,
-            0,
-            width,
-            height
-        );
-
-        const resizedBlob = await new Promise(function(resolve, reject) {
+    async function canvasToBlob(canvas, type, quality) {
+        return new Promise(function(resolve, reject) {
             try {
                 canvas.toBlob(
                     function(blob) {
@@ -1805,179 +1783,520 @@
                         } else {
                             reject(
                                 new Error(
-                                    "Could not prepare the image for this device."
+                                    "The browser could not create a processing image."
                                 )
                             );
                         }
                     },
-                    "image/webp",
-                    0.92
+                    type,
+                    quality
                 );
             } catch (error) {
                 reject(error);
             }
         });
+    }
+
+    async function prepareBackgroundInput(
+        file,
+        maxDimension,
+        maxPixels
+    ) {
+        const image =
+            await loadImageForProcessing(file);
+
+        const sourceWidth = image.naturalWidth;
+        const sourceHeight = image.naturalHeight;
+
+        if (!sourceWidth || !sourceHeight) {
+            throw new Error(
+                "The image has invalid dimensions."
+            );
+        }
+
+        const sourcePixels =
+            sourceWidth * sourceHeight;
+
+        const scale =
+            sourcePixels > maxPixels ||
+            sourceWidth > maxDimension ||
+            sourceHeight > maxDimension
+                ? Math.min(
+                    maxDimension / sourceWidth,
+                    maxDimension / sourceHeight,
+                    Math.sqrt(
+                        maxPixels / sourcePixels
+                    )
+                )
+                : 1;
+
+        const width = Math.max(
+            1,
+            Math.round(sourceWidth * scale)
+        );
+
+        const height = Math.max(
+            1,
+            Math.round(sourceHeight * scale)
+        );
+
+        /*
+         * For small files/images, still create a clean browser image
+         * for the ML pipeline. This keeps the processing path identical
+         * for tiny and large uploads.
+         */
+        const canvas =
+            document.createElement("canvas");
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const context =
+            canvas.getContext("2d", {
+                alpha: true,
+                desynchronized: true
+            });
+
+        if (!context) {
+            throw new Error(
+                "Your browser cannot create a processing canvas."
+            );
+        }
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "medium";
+
+        context.drawImage(
+            image,
+            0,
+            0,
+            width,
+            height
+        );
+
+        /*
+         * WebP keeps the temporary input much smaller than the
+         * original JPG/PNG file while preserving enough detail for
+         * the segmentation model.
+         */
+        const preparedBlob =
+            await canvasToBlob(
+                canvas,
+                "image/webp",
+                0.9
+            );
+
+        /*
+         * Release canvas backing memory as early as possible.
+         */
+        canvas.width = 1;
+        canvas.height = 1;
 
         return {
             file: new File(
-                [resizedBlob],
-                file.name.replace(/\.[^/.]+$/, "") + "-pixvero.webp",
+                [preparedBlob],
+                file.name.replace(
+                    /\.[^/.]+$/,
+                    ""
+                ) + "-pixvero.webp",
                 {
                     type: "image/webp",
                     lastModified: Date.now()
                 }
             ),
-            resized: true,
+            resized:
+                scale < 1 ||
+                width !== sourceWidth ||
+                height !== sourceHeight,
             width,
             height
         };
     }
 
+    function getProcessingAttempts() {
+        const profile =
+            getSafeProcessingProfile();
 
-    removeButton.addEventListener("click", async function() {
-        clearError();
+        const attempts = [
+            {
+                maxDimension:
+                    profile.maxDimension,
+                maxPixels:
+                    profile.maxPixels
+            }
+        ];
 
-        if (!selectedFile) {
-            showError("Please choose an image first.");
-            return;
+        if (isMobileDevice()) {
+            /*
+             * Automatic fallbacks. A 15 MB camera photo can therefore
+             * start at a practical size and step down only when the
+             * current phone cannot handle the first attempt.
+             */
+            const fallbacks = [
+                {
+                    maxDimension: 1024,
+                    maxPixels: 1000000
+                },
+                {
+                    maxDimension: 768,
+                    maxPixels: 600000
+                },
+                {
+                    maxDimension: 512,
+                    maxPixels: 262144
+                }
+            ];
+
+            fallbacks.forEach(function(item) {
+                const duplicate =
+                    attempts.some(function(existing) {
+                        return (
+                            existing.maxDimension ===
+                                item.maxDimension &&
+                            existing.maxPixels ===
+                                item.maxPixels
+                        );
+                    });
+
+                if (!duplicate) {
+                    attempts.push(item);
+                }
+            });
         }
 
-        removeButton.disabled = true;
-        clearButton.disabled = true;
+        return attempts;
+    }
 
-        try {
-            setStatus(
-                isMobileDevice()
-                    ? "Preparing image for mobile processing..."
-                    : "Preparing image...",
-                5
-            );
+    async function runBackgroundRemoval(
+        preparedFile,
+        preferGpu
+    ) {
+        const config = {
+            publicPath:
+                "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
 
-            const prepared =
-                await prepareBackgroundInput(
-                    selectedFile
-                );
+            model:
+                "isnet_quint8",
 
-            setStatus(
-                prepared.resized
-                    ? "Image optimized for safe processing..."
-                    : "Loading background-removal model...",
-                12
-            );
+            device:
+                preferGpu
+                    ? "gpu"
+                    : "cpu",
 
-            const resultBlob =
-                await removeBackground(
-                    prepared.file,
-                    {
-                        publicPath:
-                            "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
-                        model: "isnet_quint8",
-                        device: isMobileDevice()
-                            ? "cpu"
-                            : "gpu",
-                        proxyToWorker: true,
-                        output: {
-                            format: "image/png",
-                            quality: 0.9
-                        },
-                        progress:
-                            function(key, current, total) {
-                                const percent =
-                                    total > 0
-                                        ? (current / total) * 100
-                                        : null;
+            output: {
+                format: "image/png",
+                quality: 0.9
+            },
 
-                                if (percent !== null) {
-                                    setStatus(
-                                        "Preparing " +
-                                        key +
-                                        "...",
-                                        Math.max(15, percent)
-                                    );
-                                } else {
-                                    setStatus(
-                                        "Processing image...",
-                                        55
-                                    );
-                                }
-                            }
+            progress:
+                function(
+                    key,
+                    current,
+                    total
+                ) {
+                    const percent =
+                        total > 0
+                            ? (
+                                current / total
+                            ) * 100
+                            : null;
+
+                    if (
+                        percent !==
+                        null
+                    ) {
+                        setStatus(
+                            "Preparing " +
+                                key +
+                                "...",
+                            Math.max(
+                                15,
+                                percent
+                            )
+                        );
+                    } else {
+                        setStatus(
+                            "Processing image...",
+                            55
+                        );
                     }
+                }
+        };
+
+        return await removeBackground(
+            preparedFile,
+            config
+        );
+    }
+
+    async function removeWithAutomaticFallbacks(
+        file
+    ) {
+        const mobile =
+            isMobileDevice();
+
+        const attempts =
+            getProcessingAttempts();
+
+        let lastError =
+            null;
+
+        for (
+            let index = 0;
+            index < attempts.length;
+            index++
+        ) {
+            const attempt =
+                attempts[index];
+
+            try {
+                setStatus(
+                    mobile
+                        ? (
+                            index === 0
+                                ? "Preparing image for mobile processing..."
+                                : "Retrying with a smaller working size..."
+                        )
+                        : "Preparing image...",
+                    index === 0
+                        ? 5
+                        : Math.min(
+                            12 + index * 7,
+                            35
+                        )
                 );
 
-            setStatus(
-                "Background removed. Finalizing PNG...",
-                95
-            );
+                const prepared =
+                    await prepareBackgroundInput(
+                        file,
+                        attempt.maxDimension,
+                        attempt.maxPixels
+                    );
 
-            revokeResultUrl();
-
-            resultUrl =
-                URL.createObjectURL(resultBlob);
-
-            resultPreview.src = resultUrl;
-
-            const originalName =
-                selectedFile.name.replace(
-                    /\.[^/.]+$/,
-                    ""
+                setStatus(
+                    "Removing background..." +
+                        (
+                            prepared.resized
+                                ? " Working size " +
+                                  prepared.width +
+                                  "×" +
+                                  prepared.height +
+                                  "."
+                                : ""
+                        ),
+                    25
                 );
 
-            downloadButton.href = resultUrl;
+                /*
+                 * On mobile, use CPU for predictable compatibility.
+                 * On desktop, use GPU when WebGPU is actually available.
+                 */
+                const canUseGpu =
+                    !mobile &&
+                    !!(
+                        navigator.gpu
+                    );
 
-            downloadButton.download =
-                originalName +
-                "-background-removed.png";
+                try {
+                    const result =
+                        await runBackgroundRemoval(
+                            prepared.file,
+                            canUseGpu
+                        );
 
-            previewWrap.style.display = "block";
+                    return {
+                        blob: result,
+                        prepared
+                    };
+                } catch (firstError) {
+                    lastError =
+                        firstError;
 
-            setStatus(
-                prepared.resized
-                    ? "Done — mobile-safe transparent PNG is ready."
-                    : "Done — transparent PNG is ready.",
-                100
-            );
+                    /*
+                     * If GPU initialization fails on desktop,
+                     * immediately retry the same input on CPU.
+                     */
+                    if (
+                        canUseGpu
+                    ) {
+                        setStatus(
+                            "GPU processing unavailable — switching to CPU...",
+                            45
+                        );
 
-            setTimeout(function() {
-                hideStatus();
-            }, 1200);
+                        await sleep(50);
 
-            previewWrap.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+                        const result =
+                            await runBackgroundRemoval(
+                                prepared.file,
+                                false
+                            );
 
-        } catch (error) {
-            console.error(
-                "Pixvero background remover error:",
-                error
-            );
+                        return {
+                            blob: result,
+                            prepared
+                        };
+                    }
 
-            const message =
-                error && error.message
-                    ? error.message.toLowerCase()
-                    : "";
+                    throw firstError;
+                }
+            } catch (error) {
+                lastError = error;
 
-            if (
-                message.includes("memory") ||
-                message.includes("allocation") ||
-                message.includes("out of memory")
-            ) {
+                console.warn(
+                    "Pixvero background-removal attempt " +
+                        (index + 1) +
+                        " failed:",
+                    error
+                );
+
+                /*
+                 * Give the browser a moment to release temporary
+                 * canvas/WASM memory before the next attempt.
+                 */
+                await sleep(120);
+            }
+        }
+
+        throw (
+            lastError ||
+            new Error(
+                "Background removal could not be completed on this device."
+            )
+        );
+    }
+
+    removeButton.addEventListener(
+        "click",
+        async function() {
+            clearError();
+
+            if (!selectedFile) {
                 showError(
-                    "This image is too large for this device. Please choose a smaller image and try again."
+                    "Please choose an image first."
                 );
-            } else {
-                showError(
-                    "Could not remove the background on this device. Please try a smaller JPG, PNG or WebP image, then try again."
-                );
+                return;
             }
 
-            hideStatus();
+            removeButton.disabled = true;
+            clearButton.disabled = true;
 
-        } finally {
-            removeButton.disabled = false;
-            clearButton.disabled = false;
+            try {
+                const result =
+                    await removeWithAutomaticFallbacks(
+                        selectedFile
+                    );
+
+                setStatus(
+                    "Background removed. Finalizing PNG...",
+                    95
+                );
+
+                revokeResultUrl();
+
+                resultUrl =
+                    URL.createObjectURL(
+                        result.blob
+                    );
+
+                resultPreview.src =
+                    resultUrl;
+
+                const originalName =
+                    selectedFile.name.replace(
+                        /\.[^/.]+$/,
+                        ""
+                    );
+
+                downloadButton.href =
+                    resultUrl;
+
+                downloadButton.download =
+                    originalName +
+                    "-background-removed.png";
+
+                previewWrap.style.display =
+                    "block";
+
+                setStatus(
+                    result.prepared.resized
+                        ? "Done — background removed successfully."
+                        : "Done — background removed successfully.",
+                    100
+                );
+
+                setTimeout(
+                    function() {
+                        hideStatus();
+                    },
+                    1200
+                );
+
+                previewWrap.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            } catch (error) {
+                console.error(
+                    "Pixvero background remover error:",
+                    error
+                );
+
+                const rawMessage =
+                    error &&
+                    error.message
+                        ? error.message
+                        : "";
+
+                const message =
+                    rawMessage.toLowerCase();
+
+                if (
+                    message.includes(
+                        "network"
+                    ) ||
+                    message.includes(
+                        "fetch"
+                    ) ||
+                    message.includes(
+                        "failed to fetch"
+                    )
+                ) {
+                    showError(
+                        "Background-removal model could not be loaded. Please check your internet connection and try again."
+                    );
+                } else if (
+                    message.includes(
+                        "memory"
+                    ) ||
+                    message.includes(
+                        "allocation"
+                    ) ||
+                    message.includes(
+                        "out of memory"
+                    ) ||
+                    message.includes(
+                        "abort"
+                    )
+                ) {
+                    showError(
+                        "Your device could not complete the on-device AI processing. Pixvero automatically tried smaller working sizes. Please close other apps/tabs and try again."
+                    );
+                } else {
+                    showError(
+                        "Pixvero could not complete background removal on this device. Please refresh the page and try again."
+                    );
+                }
+
+                hideStatus();
+
+            } finally {
+                removeButton.disabled = false;
+                clearButton.disabled = false;
+            }
         }
-    });
+    );
 
     clearButton.addEventListener("click", function() {
         selectedFile = null;
@@ -2005,6 +2324,7 @@
         revokeOriginalUrl();
         revokeResultUrl();
     });
+
 </script>
 
 </body>
